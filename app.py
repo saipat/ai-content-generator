@@ -36,20 +36,29 @@ Automate your writing workflow—faster, smarter, cleaner.
 st.markdown("---")
 
 # -- Content Generation Section --
-st.subheader("✍️ Write high-quality content")
+# st.subheader("✍️ Write high-quality content")
 
-content_type = st.selectbox("What do you want to generate?", [
-    "Blog Post",
-    "Tweet",
-    "Product Description",
-    "LinkedIn Post"
+content_type = st.selectbox("📝 What do you want to generate?", [
+    "📰 Blog Post",
+    "🐦 Tweet",
+    "🛍️ Product Description",
+    "💼 LinkedIn Post"
 ])
 
-user_input = st.text_area("Enter a topic, idea, or keywords:")
+tone = st.selectbox("🎨 Choose a tone/style:", [
+        "😐 Neutral",
+        "🏢 Professional",
+        "😎 Casual",
+        "😂 Funny",
+        "🧲 Persuasive"
+    ])
 
-if st.button("⚡ Generate"):
+user_input = st.text_area("💡 Enter a topic, idea, or keywords:")
+
+if st.button("⚡ Generate", type="primary"):
     with st.spinner("Thinking..."):
-        full_prompt = f"Write a {content_type.lower()} about: {user_input}"
+        tone_clean = tone.split(" ", 1)[1]  # Remove emoji
+        full_prompt = f"Write a {tone_clean.lower()} {content_type.lower()} about: {user_input}"
         result = generate_response(full_prompt)
 
         st.session_state.history.append({
@@ -73,3 +82,7 @@ with st.sidebar:
         with st.expander(f"{i}. {entry['type']}: {input_preview}"):
             st.markdown("##### ✍️ Output")
             st.write(entry.get("output", "_No content available_"))
+
+
+st.markdown("---")
+st.markdown("Built with 💙 using Streamlit + OpenAI", unsafe_allow_html=True)
