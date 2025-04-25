@@ -1,6 +1,6 @@
 import streamlit as st
 from main import generate_response
-from db import init_db, save_to_db, get_last_n_entries, get_total_count, clear_history, export_history_csv
+from db import init_db, save_to_db, get_last_n_entries, get_total_count
 import os
 
 
@@ -82,8 +82,9 @@ if st.button("⚡ Generate", type="primary"):
 
 
 with st.sidebar:
+
     total_content_count = get_total_count()
-    st.markdown(f"### 🤖 Generated contents: {total_content_count}")
+    st.markdown(f"### 🤖 Generated contents: {total_content_count}", unsafe_allow_html=True)
 
     rows = get_last_n_entries(10)
 
@@ -94,16 +95,6 @@ with st.sidebar:
             st.markdown("##### ✍️ Output")
             st.write(output_text)
     
-    # --- Management Buttons ---
-    if st.sidebar.button("🧹 Clear History"):
-        clear_history()
-        st.experimental_rerun()
-
-    if st.sidebar.button("📄 Export to CSV"):
-        path = export_history_csv()
-        with open(path, "rb") as f:
-            st.sidebar.download_button("⬇️ Download CSV", f, file_name="history_export.csv", mime="text/csv")
-
     
 
    
