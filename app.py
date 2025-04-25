@@ -1,6 +1,9 @@
 import streamlit as st
 from main import generate_response
 
+if "history" not in st.session_state:
+    st.session_state.history = []
+
 st.set_page_config(page_title="AI Content Generator", page_icon="🤖")
 
 st.title("🤖 AI Content Generator")
@@ -22,7 +25,18 @@ if st.button("⚡ Generate"):
         # Prefix the content_type to the prompt for context
         full_prompt = f"Write a {content_type.lower()} about: {user_input}"
         result = generate_response(full_prompt)
+        st.session_state.history.append({
+            "type": content_type,
+            "input": user_input,
+            "output": result
+        })
         st.success("Done!")
         st.markdown("### ✍️ Output")
         st.write(result)
+
         st.download_button("⬇️ Download", result, file_name="content.txt", mime="text/plain")
+
+        with st.expander("📜 View History"):
+            for i, entry in enumerate(reversed(st.session_state.history), 1):
+                st.markdown(f"**{i}. {entry['type']} on _{entry['input']}_**")
+                st.code(entry["output"])

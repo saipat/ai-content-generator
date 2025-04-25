@@ -28,4 +28,5 @@ def generate_response(prompt):
 if __name__ == "__main__":
     prompt = "Write a tweet about productivity tips"
     result = generate_response(prompt)
+    
     print(result)
