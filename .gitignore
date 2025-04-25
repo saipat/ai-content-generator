@@ -1,1 +1,4 @@
-openai_api_key.txt
+venv/
+.env
+__pycache__/
+C
