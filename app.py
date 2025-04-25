@@ -1,9 +1,14 @@
 import streamlit as st
 from main import generate_response
+from db import init_db, save_to_db, get_last_n_entries
+
 
 # -- Session state for history --
 if "history" not in st.session_state:
     st.session_state.history = []
+
+# -- Initialize db --
+init_db()
 
 # -- Page Config --
 st.set_page_config(page_title="AI Content Generator", page_icon="🤖")
@@ -58,6 +63,7 @@ user_input = st.text_area("💡 Enter a topic, idea, or keywords:")
 if st.button("⚡ Generate", type="primary"):
     with st.spinner("Thinking..."):
         tone_clean = tone.split(" ", 1)[1]  # Remove emoji
+        content_clean = content_type.split(" ", 1)[1]  # Remove emoji
         full_prompt = f"Write a {tone_clean.lower()} {content_type.lower()} about: {user_input}"
         result = generate_response(full_prompt)
 
@@ -68,6 +74,7 @@ if st.button("⚡ Generate", type="primary"):
         })
 
         st.success("Done!")
+        save_to_db(content_clean, tone_clean, user_input, result)
         st.markdown("### ✅ Output")
         st.write(result)
         st.download_button("⬇️ Download", result, file_name="content.txt", mime="text/plain")
@@ -75,13 +82,22 @@ if st.button("⚡ Generate", type="primary"):
 
 with st.sidebar:
     st.markdown(f"### 🤖 Generated contents: {len(st.session_state.history)}")
-    
-    for i, entry in enumerate(reversed(st.session_state.history[-50:]), 1):
-        input_preview = entry.get("input", "")[:30].title()
 
-        with st.expander(f"{i}. {entry['type']}: {input_preview}"):
+    rows = get_last_n_entries(10)
+
+    for i, (ctype, tone, input_text, output_text, created_at) in enumerate(rows, 1):
+        preview = input_text[:30].title()
+        with st.expander(f"{i}. {ctype} ({tone}) — {preview}"):
+            st.markdown(f"**🕒 {created_at.split('T')[0]}**")
             st.markdown("##### ✍️ Output")
-            st.write(entry.get("output", "_No content available_"))
+            st.write(output_text)
+    
+    # for i, entry in enumerate(reversed(st.session_state.history[-50:]), 1):
+    #     input_preview = entry.get("input", "")[:30].title()
+
+    #     with st.expander(f"{i}. {entry['type']}: {input_preview}"):
+    #         st.markdown("##### ✍️ Output")
+    #         st.write(entry.get("output", "_No content available_"))
 
 
 st.markdown("---")
