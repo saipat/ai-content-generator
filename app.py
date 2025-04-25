@@ -1,6 +1,7 @@
 import streamlit as st
 from main import generate_response
-from db import init_db, save_to_db, get_last_n_entries
+from db import init_db, save_to_db, get_last_n_entries, get_total_count, clear_history, export_history_csv
+import os
 
 
 # -- Session state for history --
@@ -81,7 +82,8 @@ if st.button("⚡ Generate", type="primary"):
 
 
 with st.sidebar:
-    st.markdown(f"### 🤖 Generated contents: {len(st.session_state.history)}")
+    total_content_count = get_total_count()
+    st.markdown(f"### 🤖 Generated contents: {total_content_count}")
 
     rows = get_last_n_entries(10)
 
@@ -92,13 +94,19 @@ with st.sidebar:
             st.markdown("##### ✍️ Output")
             st.write(output_text)
     
-    # for i, entry in enumerate(reversed(st.session_state.history[-50:]), 1):
-    #     input_preview = entry.get("input", "")[:30].title()
+    # --- Management Buttons ---
+    if st.sidebar.button("🧹 Clear History"):
+        clear_history()
+        st.experimental_rerun()
 
-    #     with st.expander(f"{i}. {entry['type']}: {input_preview}"):
-    #         st.markdown("##### ✍️ Output")
-    #         st.write(entry.get("output", "_No content available_"))
+    if st.sidebar.button("📄 Export to CSV"):
+        path = export_history_csv()
+        with open(path, "rb") as f:
+            st.sidebar.download_button("⬇️ Download CSV", f, file_name="history_export.csv", mime="text/csv")
 
+    
+
+   
 
 st.markdown("---")
 st.markdown("Built with 💙 using Streamlit + OpenAI", unsafe_allow_html=True)
