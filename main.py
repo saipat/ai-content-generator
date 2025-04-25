@@ -1,24 +1,29 @@
-import openai
-from dotenv import load_dotenv
 import os
+from openai import OpenAI
+from dotenv import load_dotenv
+from openai import RateLimitError
 
 # Load .env file
 load_dotenv()
 
-# Get API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def generate_response(prompt):
-    response = openai.ChatCompletion.create(
-        model="gpt-4",  # Or "gpt-3.5-turbo"
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant who writes content."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=500,
-        temperature=0.7
-    )
-    return response.choices[0].message["content"]
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant who writes content."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500,
+            temperature=0.7
+        )
+        return response.choices[0].message.content
+    except RateLimitError as e:
+        return "⚠️ Error: You've exceeded your usage quota. Please check your OpenAI billing."
+
 
 if __name__ == "__main__":
     prompt = "Write a tweet about productivity tips"
