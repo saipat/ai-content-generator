@@ -1,9 +1,14 @@
 import sqlite3
 from datetime import datetime
 import csv
-
+from auth import init_user_db
 
 DB_FILE = "history.db"
+
+def init_all_databases():
+    init_db()
+    init_user_db()
+    init_guest_tracking_db()
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -54,3 +59,39 @@ def get_total_count(username):
     conn.close()
     return count
 
+def delete_old_guest_entries(hours=1):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute('''
+        DELETE FROM history
+        WHERE username = 'guest'
+        AND datetime(created_at) <= datetime('now', ?)
+    ''', (f'-{hours} hours',))
+    conn.commit()
+    conn.close()
+
+def init_guest_tracking_db():
+    conn = sqlite3.connect("guests.db")
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS guest_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            guest_id TEXT,
+            converted INTEGER DEFAULT 0,  -- 0 = no, 1 = yes
+            created_at TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def get_guest_conversion_stats():
+    conn = sqlite3.connect("guests.db")
+    c = conn.cursor()
+    c.execute('SELECT COUNT(*) FROM guest_sessions')
+    total_guests = c.fetchone()[0]
+
+    c.execute('SELECT COUNT(*) FROM guest_sessions WHERE converted = 1')
+    converted_guests = c.fetchone()[0]
+
+    conn.close()
+    return total_guests, converted_guests

@@ -65,9 +65,37 @@ def auth_tabs():
         new_pass = st.text_input("Choose a password", type="password", key="signup_pass")
         if st.button("Sign Up"):
             if create_user(new_user, new_pass):
+                # If they were a Guest before
+                if st.session_state.get("guest_id"):
+                    conn = sqlite3.connect("guests.db")
+                    c = conn.cursor()
+                    c.execute('UPDATE guest_sessions SET converted = 1 WHERE guest_id = ?', (st.session_state.guest_id,))
+                    conn.commit()
+                    conn.close()
+
                 st.success("Account created! You can now log in.")
             else:
                 st.error("Username already exists.")
+    
+    # Guest Login Option 
+    st.markdown("---")
+    st.markdown("👋 Want to try it without signing up?")
+    if st.button("🔓 Continue as Guest"):
+        guest_id = str(datetime.utcnow().timestamp())  # simple guest id
+        st.session_state.guest_id = guest_id
+        st.session_state.user = "guest"
+
+        # Save guest session
+        conn = sqlite3.connect("guests.db")
+        c = conn.cursor()
+        c.execute('INSERT INTO guest_sessions (guest_id, created_at) VALUES (?, ?)', 
+                (guest_id, datetime.utcnow().isoformat()))
+        conn.commit()
+        conn.close()
+
+        st.success("You're logged in as a Guest!")
+        st.rerun()
+
 
 
 def logout_button():

@@ -1,17 +1,14 @@
 import streamlit as st
 from main import generate_response
-from db import init_db, save_to_db, get_last_n_entries, get_total_count
+from db import save_to_db, get_last_n_entries, get_total_count, get_guest_conversion_stats, init_all_databases
 import os
-from auth import auth_tabs, logout_button, is_logged_in, init_user_db
-init_user_db()
-
+from auth import auth_tabs, logout_button, is_logged_in
 
 # -- Page Config --
 st.set_page_config(page_title="AI Content Generator", page_icon="🤖")
 
 # -- Initialize DBs --
-init_db()
-init_user_db()
+init_all_databases()
 
 # -- Session state for history --
 if "history" not in st.session_state:
@@ -27,6 +24,9 @@ if not is_logged_in():
 else:
     logout_button()
 
+if st.session_state.user == "guest":
+    from db import delete_old_guest_entries
+    delete_old_guest_entries(hours=1)
 
 # -- Inject custom styles --
 st.markdown("""
@@ -96,6 +96,14 @@ if st.button("⚡ Generate", type="primary"):
 
 
 with st.sidebar:
+    if st.session_state.user == "guest":
+        st.sidebar.info("🔓 You are using Guest mode. Your data may not be saved permanently.")
+        st.sidebar.warning("🔒 Sign up to save your content and access full features!")
+    
+    if st.session_state.user == "sailakshmi.pattabiraman@gmail.com":
+        total_guests, converted_guests = get_guest_conversion_stats()
+        st.sidebar.markdown(f"📈 Guest Conversions: {converted_guests}/{total_guests} ({(converted_guests/total_guests*100) if total_guests else 0:.1f}%)")
+
 
     total_content_count = get_total_count(st.session_state.user)
     st.markdown(f"### 🤖 Generated contents: {total_content_count}", unsafe_allow_html=True)
@@ -108,10 +116,6 @@ with st.sidebar:
             st.markdown(f"**🕒 {created_at.split('T')[0]}**")
             st.markdown("##### ✍️ Output")
             st.write(output_text)
-    
-    
-
-   
 
 st.markdown("---")
 st.markdown("Built with 💙 using Streamlit + OpenAI", unsafe_allow_html=True)
