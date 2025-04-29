@@ -2,27 +2,30 @@ import streamlit as st
 from main import generate_response
 from db import init_db, save_to_db, get_last_n_entries, get_total_count
 import os
-from auth import login_form, logout_button, is_logged_in, signup_form
+from auth import auth_tabs, logout_button, is_logged_in, init_user_db
+init_user_db()
 
+
+# -- Page Config --
+st.set_page_config(page_title="AI Content Generator", page_icon="🤖")
+
+# -- Initialize DBs --
+init_db()
+init_user_db()
 
 # -- Session state for history --
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# -- Initialize db --
-init_db()
-
-# -- Page Config --
-st.set_page_config(page_title="AI Content Generator", page_icon="🤖")
-
+# -- Auth & Entry --
 if not is_logged_in():
-    st.title("🤖 AI Content Generator")
-    login_form()
-    st.markdown("---")
-    signup_form()
+    st.markdown("# 🤖 AI Content Generator")
+    st.markdown("### Create high-quality content in seconds with AI precision.")
+    st.markdown("Automate your writing workflow—faster, smarter, cleaner.")
+    auth_tabs()
     st.stop()
 else:
-    logout_button()  # in sidebar
+    logout_button()
 
 
 # -- Inject custom styles --
