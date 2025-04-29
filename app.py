@@ -89,7 +89,7 @@ if st.button("⚡ Generate", type="primary"):
         })
 
         st.success("Done!")
-        save_to_db(content_clean, tone_clean, user_input, result)
+        save_to_db(st.session_state.user, content_clean, tone_clean, user_input, result)
         st.markdown("### ✅ Output")
         st.write(result)
         st.download_button("⬇️ Download", result, file_name="content.txt", mime="text/plain")
@@ -97,10 +97,10 @@ if st.button("⚡ Generate", type="primary"):
 
 with st.sidebar:
 
-    total_content_count = get_total_count()
+    total_content_count = get_total_count(st.session_state.user)
     st.markdown(f"### 🤖 Generated contents: {total_content_count}", unsafe_allow_html=True)
 
-    rows = get_last_n_entries(10)
+    rows = get_last_n_entries(st.session_state.user, 10)
 
     for i, (ctype, tone, input_text, output_text, created_at) in enumerate(rows, 1):
         preview = input_text[:30].title()
