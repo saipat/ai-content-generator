@@ -2,6 +2,7 @@ import streamlit as st
 from main import generate_response
 from db import init_db, save_to_db, get_last_n_entries, get_total_count
 import os
+from auth import login_form, logout_button, is_logged_in, signup_form
 
 
 # -- Session state for history --
@@ -13,6 +14,16 @@ init_db()
 
 # -- Page Config --
 st.set_page_config(page_title="AI Content Generator", page_icon="🤖")
+
+if not is_logged_in():
+    st.title("🤖 AI Content Generator")
+    login_form()
+    st.markdown("---")
+    signup_form()
+    st.stop()
+else:
+    logout_button()  # in sidebar
+
 
 # -- Inject custom styles --
 st.markdown("""
