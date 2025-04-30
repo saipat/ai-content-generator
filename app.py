@@ -91,7 +91,8 @@ if st.button("⚡ Generate", type="primary"):
         st.success("Done!")
         save_to_db(st.session_state.user, content_clean, tone_clean, user_input, result)
         st.markdown("### ✅ Output")
-        st.write(result)
+        # st.write(result)
+        edited_text = st.text_area("✏️ Edit your content:", value=result, height=200)
         st.download_button("⬇️ Download", result, file_name="content.txt", mime="text/plain")
 
 
