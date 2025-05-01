@@ -3,6 +3,31 @@ from main import generate_response
 from db import save_to_db, get_last_n_entries, get_total_count, get_guest_conversion_stats, init_all_databases
 from auth import auth_tabs, logout_button, is_logged_in
 
+import yaml
+import streamlit_authenticator as stauth
+
+# Load YAML config
+with open('config.yaml') as file:
+    config = yaml.safe_load(file)
+
+authenticator = stauth.Authenticate(
+    config['credentials'],
+    config['cookie']['name'],
+    config['cookie']['key'],
+    config['cookie']['expiry_days'],
+)
+
+name, authentication_status, username = authenticator.login("Login", "main")
+
+if authentication_status is False:
+    st.error("Invalid username or password.")
+elif authentication_status is None:
+    st.warning("Please enter your username and password.")
+else:
+    st.success(f"Welcome {name} 👋")
+    st.session_state.user = username
+    authenticator.logout("Logout", "sidebar")
+
 # -- Page Config --
 st.set_page_config(page_title="AI Content Generator", page_icon="🤖")
 
@@ -25,7 +50,7 @@ if not is_logged_in():
     auth_tabs()
     st.stop()
 else:
-    logout_button()
+    authenticator.logout("Logout", "sidebar")
 
 if st.session_state.user == "guest":
     from db import delete_old_guest_entries
