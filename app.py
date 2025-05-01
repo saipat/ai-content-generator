@@ -76,25 +76,34 @@ if st.button("⚡ Generate", type="primary"):
 
 # -- Editing + Rephrase (only for signed-in users) --
 if "generated_output" in st.session_state:
-    if st.session_state.user == "guest":
-        st.info("🔒 Editing and Rephrasing are only available for signed-in users.")
-    else:
-        # Update edited_text from rephrased_text if available
-        if st.session_state.rephrased_text:
-            st.session_state.edited_text = st.session_state.rephrased_text
-            st.session_state.rephrased_text = ""
+    # --- Show Generated ---
+    st.text_area("🤖 Generated Content", 
+                 value=st.session_state.generated_output, 
+                 height=200)
 
-        # Show single editable text box
-        st.text_area("✏️ Edit your content:", key="edited_text", height=200)
+    # --- Show Editable Content (for signed-in users) ---
+    if st.session_state.user != "guest":
+        if st.button("✏️ Edit"):
+            st.text_area("Your Edited Version", 
+                        key="edited_text", 
+                        value=st.session_state.generated_output,
+                        height=200)
 
         if st.button("🔁 Rephrase"):
             with st.spinner("Rephrasing..."):
-                prompt = f"Please rephrase the following text in a clearer and more polished way:\n\n{st.session_state.edited_text}"
+                prompt = f"Please rephrase the following text in a clearer and more polished way:\n\n{st.session_state.generated_output}"
                 rephrased = generate_response(prompt)
                 st.session_state.rephrased_text = rephrased
-                st.success("🔁 Rephrased!")
-elif st.session_state.user == "guest":
-    st.info("🔒 Editing and Rephrasing are only available for signed-in users.")
+
+        # --- Show Rephrased Output ---
+        if st.session_state.rephrased_text:
+            st.text_area("🔁 Rephrased Version", 
+                        value=st.session_state.rephrased_text, 
+                        height=200)
+            st.success("🔁 Rephrased!")
+    else:
+        st.info("🔒 Editing and rephrasing are only available for signed-in users.")
+
 
 # -- Download final content --
 final_output = st.session_state.get("rephrased_text") or st.session_state.get("edited_text", "")
